@@ -1,0 +1,324 @@
+Title,PR_Number,Body,State,Created_At,Closed_At,User,Commits,Additions,Deletions,Changed_Files
+Fix crash for trade notifications as Spectator or during waiting for player,10614,"Closes #10602
+
+Simplistic hack, didn't really check in-depth whether maybe more exclusions or ""selectedCiv"" uses instead of ""viewingCiv"" would be in order. Tapping a tech researched notif as Spectator - what will it do??? OK - checked that, answer: blank beginner techscreen, fixed. But there might be more.",open,2023-11-28T19:56:17Z,,SomeTroglodyte,2,6,2,1
+Update Italian.properties,10612,,open,2023-11-28T14:26:07Z,,Smashfanful,1,15,30,1
+(Tool) Tiny helper to load MP saves (from issues for debugging) as hotseat,10610,"... as button on the Debug tab. This is inspired by #10602 making me want such a tool for the maybe sixth time over a year, but at the end of the day - worth it? You throw the dice, I'm 50:50.",open,2023-11-28T11:40:06Z,,SomeTroglodyte,2,29,11,3
+Added unique MayBuyConstructionsInPupets,10597,"It's a tiny update that adds the Unique allowed-to-buy items (units and buildings) in puppet cities.
+
+May be helpful for Modders to create more versatile nations.
+
+(This is my first PR to Unciv, so any suggestions are welcomed).",open,2023-11-27T07:53:00Z,,rpolitex,2,11,2,3
+Add iHasUniques.techColumn(),10595,"Don't look at this before https://github.com/yairm210/Unciv/pull/10593 is resolved!
+
+This branch is branched off of https://github.com/yairm210/Unciv/pull/10593. This will be much harder to read with https://github.com/yairm210/Unciv/pull/10593 changes intermixed. After https://github.com/yairm210/Unciv/pull/10593 is merged, this should be much more readable.
+
+(This should, however, be orthogonal to https://github.com/yairm210/Unciv/pull/10594.)
+
+This adds the convenience function `techColumn()` and replaces all references to `ruleset.technologies[building.requiredTech]?.column` with calls to `techColumn()`.",open,2023-11-27T04:23:53Z,,dHannasch,12,32,6,6
+Add iHasUniques.availableInEra(),10594,"Don't look at this before https://github.com/yairm210/Unciv/pull/10593 is resolved!
+
+This branch is branched off of https://github.com/yairm210/Unciv/pull/10593. This will be much harder to read with https://github.com/yairm210/Unciv/pull/10593 changes intermixed. After https://github.com/yairm210/Unciv/pull/10593 is merged, this should be much more readable.
+
+There was one particularly complicated use of `requiredTech` in CityStateFunctions.kt. This extracts the whole kit-n-caboodle into its own function (which is only called in one place).",open,2023-11-27T03:59:05Z,,dHannasch,12,39,6,6
+Stats per Stat unique,10591,"Syntax:
+[stats] per [amount] [stat]
+
+Example: 
+[+1 Gold] per [100] [Gold]
+
+In that case, if player has 1000 gold, he/she gets additonal 10 gold per turn. If the number of stockpiled gold is 5000, the bonus is 50 gold per turn. If the player has less than 100 gold, there is no bonus.
+
+Why?
+This unique can be used by modders to give players the additional bonus for accumulating a large amount of specified stat. The most obvious example is the compound interest.
+
+If you have any suggestions, please share your thoughts in comments",open,2023-11-26T18:54:16Z,,PLynx01,1,6,1,2
+ConditionalDisjunction,10588,"This doesn't actually work, this is just to follow up on discussion. As you can see, implementing ""This policy cannot be adopted unless *either* Theology is discovered *or* a religion is founded"" would be quite straightforward on the back end, unless I'm missing something. The hard part is the text parsing. I don't know how to make that work.
+
+The reason it doesn't work is because https://github.com/yairm210/Unciv/blob/master/core/src/com/unciv/models/translations/Translations.kt#L492
+```
+fun String.getConditionals(): List<Unique> {
+    if (!this.contains('<')) return emptyList()
+    return pointyBraceRegex.findAll(this).map { Unique(it.groups[1]!!.value) }.toList()
+}
+```
+doesn't allow nesting conditionals. (Obviously, once everything is parsed into objects, the Unique objects do allow nesting conditionals.)",open,2023-11-26T17:10:56Z,,dHannasch,3,4,0,2
+Add iHasUniques.requiredTechs,10587,"This doesn't touch any usages, just drops all the techs from the Uniques into the function.
+
+This shouldn't cause any problems, because https://github.com/yairm210/Unciv/pull/10585 didn't change any of the more complicated usages where dropping in the techs from the Uniques would cause problems.",open,2023-11-26T16:33:18Z,,dHannasch,3,12,1,2
+Update Belarusian.properties,10566,,open,2023-11-24T09:19:57Z,,twinflac,1,11,22,1
+Allow mods to specify multiple prerequisite techs for a unit,10562,"### TLDR
+
+This branch makes it possible for mods to specify, in the JSON, that a unit requires multiple technologies.
+
+This was tricky in Civilization V --- see e.g. https://forums.civfanatics.com/threads/producing-unit-condition-multiple-techs.389964
+ --- but Unciv's unified data model seems to make it relatively straightforward.
+
+This lists a unit in the Civilopedia for *both* its required technologies, which seems most natural to me.
+
+
+### The Problem
+
+Mods sometimes want to have units that depend on multiple technologies. For example, you might have two parallel tech tracks, one for weapons and one for mobility. The player can then build units with the best weapons and mobility they have researched.
+
+But technically, that's not possible. The state-of-the-art workaround is to create a dummy zero-cost fake tech to own the unit, but that results in ugly spaghetti-snarl tech trees that are more difficult for the player to read and navigate through links. More commonly, modders *don't* do that, and instead resort to various improvised bidirectional kludges, resulting in warnings.
+
+![HorsemanObsoletesAtTechRifling](https://github.com/yairm210/Unciv/assets/13223511/8361dfd6-28c3-423c-9bc5-c2606f10ba03)
+
+The goal, then, is to allow a mod to specify, in the JSON,, e.g.
+> ""name"": ""Chariot Archer"",
+> ""requiredTechs"": [""Animal Husbandry"", ""Archery""]
+
+and have it Just Work.
+
+![requiredTechsCivilopedia](https://github.com/yairm210/Unciv/assets/13223511/dcde185b-bd85-4b4b-9e09-8ba87ebb3cb1)
+
+### The Data Model
+
+This branch is *technically* fully functional in the sense that it allows ""requiredTechs"" to be specified in the JSON, but obviously this is only half the job: to be useful in practice, I have to give the same treatment to ""obsoleteTech"". But I wanted to check in and get your thoughts whenever you have a moment.
+
+In particular, while the JSON needs to allow either a list or a single string for backwards compatibility, I am proposing to make the internal representation *always* a set of strings rather than a single string, even though the overwhelming supermajority of mods will never use this functionality. I think this prevents introducing additional complication to the codebase. I'd make an analogy to
+>     var promotions = HashSet<String>()
+
+The overwhelming majority of units get zero free promotions. Of the units who do get free promotions, the overwhelming majority get only one, such as Artillery getting Indirect Fire. Nevertheless the promotions are always handled as a set. Instead of sometimes having null and sometimes having a string and sometimes having a set of strings, we always have a set of strings. That makes most things much simpler to handle, since the set can naturally have size zero or one.
+
+Since ""requiredTech"" is used in a lot of places, this branch has to touch a lot of files...but as you can see, we can often leave those checks looking *less* complicated, rather than more, even though we're handling more possibilities.
+
+### The Ugly
+
+So, we can have a single data model that seamlessly handles all cases, and use it everywhere. Buuuut...obviously the *actual extant JSON* for all the currently-existing mods has a single string for ""requiredTech"", not a list. To retain backwards compatibility, at *some* point that single string needs to be converted into a set of size one. What I'm proposing is to do that at the earliest possible step, when reading the JSON itself. That...technically works...but as you can see, it's by far the trickiest and ugliest part of the code.
+
+There's actually two different ways to do that. My bias is very much toward the first --- admittedly, partly because I'm not actually sure how to do the second.
+
+The first option is to call `json.readFields(this, jsonData)` first, building the BaseUnit *wrong*, and then fix it up after the fact. `json.readFields(this, jsonData)` ignores fields that it doesn't recognize; if it's expecting ""requiredTechs"" and it sees ""requiredTech"" then it just passes that by. A secondary conditional can then set ""requiredTechs"" to a set of size one.
+
+The second option is to handle all of the children symmetrically. The big problem there is that every single field in https://yairm210.github.io/Unciv/Modders/Mod-file-structure/4-Unit-related-JSON-files/#unitsjson has to be individually listed and handled. I don't know any way to make a linter or anything check that all the fields are in fact handled. If you later add an additional field to the unit schema and don't also add it to the custom serializer, it'll result in a nastily hard-to-find bug. I don't love the first approach, but I think it's better than the second approach. Nevertheless, I included a big in BaseUnit.kt showing how the second approach could work (but it's incomplete, since I didn't actually figure out how to handle all the fields that way; of course, as the file currently stands, `json.readFields(this, jsonData)` is still called so everything in the ""when"" except ""requiredTech"" is redundant and unnecessary).",open,2023-11-24T01:59:38Z,,dHannasch,30,149,63,17
+Update Russian.properties,10560,"Deleted second whitespace in translation of ruleset
+Did all missing translations
+Changed some words to conform to english translation 
+Deleted 2 lines with repeated text? (check this - 3454 duplicates 2241(post-commit) , second ] is there for no reason, same with 2688 - it is in strange place, and has an excess ])",open,2023-11-24T00:30:17Z,,caffidev,2,40,75,1
+(UI) Politics overview diagram: Add legend popup,10451,"#### Check out #10448 first
+
+<details><summary>Scrnsht</summary>
+
+![image](https://github.com/yairm210/Unciv/assets/63000004/10d627ab-2f5e-4884-a08f-0b5ba72d9a3b)
+
+... access by clicking/tappin right in the middle.
+</details>
+
+* The legend actually ""lies"" about China having a Defensive Pact with 7 of the 8 City-states, due to #10079 ""lying"" with the line color - @tuvus please explain (again?), and should we adapt the legend (needing much more text and a new template string)?
+* File desperately needs splitting. Should be a separate, refactor only PR. Input - the two ""halves"" offer themselves (now editor regions) - but they're tightly integrated with the fixed/scrollable split of the parents, so as self-contained Widgets might not work out (kotlin, get partial classes!). Standalone top-level functions? object as Namespace-like container? The now two sub-Widgets are no puzzler - own files...
+* Something is wrong with AnimatedMenuPopup's centering, but I am too mind-weak to analyze that right now. Noticeable only on lower ""Display size"" settings - as seen above. And it's not only that one helper not doing what its name says...
+
+<sub><sup>The easter egg is a little clearer on an actual screen than up there. alpha = 0.15 seems just right, 0.2 was too obvious.</sup></sub>",open,2023-11-08T21:45:33Z,,SomeTroglodyte,10,412,251,11
+Fix bug: the GlobalPoliticsTable disappears,10448,"1. The bug is that: the default Politics of Overview screen shows diagram, and then you touch the button ""Show global politics"" in Politics of Overview screen, the GlobalPoliticsTable disappears (Maybe sometimes the position of GlobalPoliticsTable changes, when the default Politics of Overview screen shows diagram it's in the center, when the default Politics of Overview screen shows global politics it's on the top)
+2. Now we replace the TextButton ""City-States"" with CheckBox",open,2023-11-08T06:42:29Z,,lishaoxia1985,1,37,41,1
+Unit test for spurious placeholders in translations that are not present in their key,10391,"## Will fail checks intentionally
+... as this [does not fix all occurrences](https://github.com/yairm210/Unciv/issues/10369#issuecomment-1783817192) the test is built to flag.
+
+Closes #10369 
+
+So what do you think - ignore problem & discard, ignore bad checks, remove flagged translations, try to fix translations (e.g. using different typographical brackets where they seem to be meant as punctuation)...?
+
+Note: That test container class has a lot of code duplication, I didn't even try to reduce that, so the new test is just a minimally altered copypasta of the other one.",open,2023-10-30T18:04:08Z,,SomeTroglodyte,3,36,7,3
+City tile acquisition overhaul - implement separation,10254,"Let's finally close #6394 some day...
+
+* See Civ5 dll source analysis in the issue
+* See monster comment in this diff
+
+But - I fear the plan to do a step first that has zero immediate effect on existing saves isn't good, tiles will get far too cheap - because our current formulas are wrong and are on average **way** too cheap.
+
+Using the formulae as I understand them without any modifiers (e.g. policies), here's some <details><summary>Charts</summary>
+
+Culture progression - green is the difference, down meaning we're cheaper, using the right-side axis:
+![image](https://github.com/yairm210/Unciv/assets/63000004/8df83527-0363-4765-8545-d7c34cb7ea7f)
+That is mainly due to - there's a comment - us using the Civ6 formula
+
+Gold buy progression
+![image](https://github.com/yairm210/Unciv/assets/63000004/bf7510e6-914c-43ad-985c-54e966f239b4)
+Mainly due to order of operations. Civ5 costs should be even higher for Hill tiles - called ""influence"" cost in source (which is complex, involving A-star pathfinding to the tile minus the cheapest A-star path to a ring 2 tile plus e.g. a modifier for resource tiles). Plus, City-states should get a *2 malus we're missing.
+
+</details>
+
+... So - go with this and patch the calculations later, or all in one go?
+
+
+By the way: Since the old tile counting code was(is) bad this could be some performance boost (It used a count(Sequence.contains) - ouch: iteration explosion).
+",open,2023-10-06T05:41:27Z,,SomeTroglodyte,4,114,12,5
+BaseUnit movement and Terrain movementCost to Floats,10090,"From the discussion on #10081 - my take on movement is fractional everywhere.
+Sorry, stepwise commit history got lost - I accidentally pushed to master and had to shelve via patch files, recreate master and redo, and the patch creation went haywire.
+
+Take as guideline and idea source - but it runs my test game just fine.",open,2023-09-09T20:41:07Z,,SomeTroglodyte,1,132,104,20
+Universal nested brackets parser demo,10076,"This could support arbitrarily nested [], {} and <> for `tr()`, possibly in one go... For now just a POC-level toy. Wrote it from the gut  without consulting that existing routine or stackoverflow&co, to ensure cleaner kotlin.
+
+Note - the no-allow requirement is only met when using the `parse{}: Unit` overload, not when using the `parse(): List<ResultEntry>` one, as ResultEntries are not pooled. I do expect the emit-based use will be the more practical. Pooling the stack entries will only be worth it when one BracketsParser instance is hammered with tons of parse calls, and maybe not even then. Did not do the instrumentation or measurements, just wanted to see which pooling provider might be useable how easily. Since Gdx is already linked, why not. Supporting the Disposable interface is on the other hand almost certainly not worth it - either you keep using it or you let one go out of scope. Voluntarily releasing resources for an instance that won't go collectible immediately won't happen.
+
+P.S.: I also ran the entire test suite shoehorning the new `String.getPlaceholderParameters()` in instead of the current one (still longer name) via `import as`, without otherwise altering the existing tests -> succeeds.",open,2023-09-06T20:09:16Z,,SomeTroglodyte,2,167,0,2
+Trade peace with other civ,9957,"This change is a part of #4697
+
+Players can now trade other Civs to offer a peace treaty to a civ they are at war with. When the civ at war accepts a trade to offer a peace treaty, a trade consisting of only a peace treaty is made to the other civ at war. The other civ may or may not accept the peace offer.",open,2023-08-23T00:15:15Z,,tuvus,10,76,15,6
+Civilopedia additions for new players,9810,"Added: New entries for Air Defense, Defense, and Garrisons.
+Added: Explanation of city Resistance in After Conquering entry.
+Formated: After Conquering entry uses ""\n"" after each sentence and ""\n\n"" between paragraphs. This creates harder to read code and breaks visual flow and grouping of concepts in civilopedia.  Format changed to one paragraph per text value without line breaks, like many other tutorial entries.  Plan to convert all entries to this format in another PR.",open,2023-07-17T21:40:06Z,,icodemad,2,36,2,1
+Add another confirmation when buying a religious unit in a city that …,9570,"…doesn't follow a religion founded by the city's civ.
+
+TODO: Need some help with getting translations right. Do I need to add something to English.properties or somewhere else?",open,2023-06-11T21:05:12Z,,WhoIsJohannes,6,23,1,2
+Multiplayer APIv2,9497,"This may be a larger PR and I'm open to suggestions. Please read on.
+
+### Highlights
+
+- in-game chats
+- lobbies & invites
+- friend system & friend chats
+- event notifications
+- lazy loading of data
+- it works™
+
+### What it does
+
+This PR introduces a new library (`ktor`) and sub-package that speaks with our [new multiplayer server](https://runciv.hopfenspace.org), as well as a lot of new UI elements that make use of those new API features, bundled with some new events to integrate the WebSocket smoothly. It already comes with a new Android turn checker as well. For more details, see #8817.
+
+We have carefully checked the new experience. It works pretty well, except for the list of [bugs and other issues](https://github.com/hopfenspace/Unciv/issues) I created at our fork. Most importantly, I don't want to break backwards-compatibility with APIv0 and APIv1 (that's how I started to call the Dropbox and all the Dropbox-replacement servers, respectively). That means: at the game start (as well as on server change), the server is queried for the `/isalive` endpoint to determine if it's an ""old-style"" server. If not (response code `400`), it is checked for `/api/version`. Only if the `apiVersion` can be matched, you will see the new features. Otherwise, everything should stay the way it currently is: players would not see any difference if they don't use a new APIv2-compatible server.
+
+Note, however, that the servers are not compatible for a specific game. At the moment, you can't create a game in APIv1 and continue playing in APIv2 (or vice versa), and there are no plans to allow that, yet. That means: a party needs to decide on a server to play on beforehand.
+
+### API
+
+I bundled all the details in `com.unciv.logic.multiplayer.apiv2`. It includes the main class `APIv2`, which holds a lot of other stuff besides the core functionality, which resides in `APIv2Wrapper`. Accessing functionality is possible like so: `UncivGame.Current.onlineMultiplayer.api.auth.login` to use the login endpoint, for example. There's also `ApiV2FileStorageEmulator` which enabled in-place usage of the new functionality whenever the current APIv0/APIv1 would be used (e.g. saving/loading games).
+
+The ""game preview"" mechanism is not used at all. The server holds a counter `dataID`, which is incremented every time some player uploads a new game. Checking the value of that counter is enough to detect changed game states.
+
+### UX
+
+There are a bunch of new screens, buttons, tables and other elements around. Some important screens:
+
+- A new `LobbyBrowserScreen` when you click on ""multiplayer"" in the main menu, which provides a list of your current games and all open lobbies of the current server, as well as buttons to create lobbies, manage friends, ...
+- A new `MultiplayerGameScreen` which you see when you click on the multiplayer button of the `WorldScreen`, providing the chat, player operations, access to the friends and recent games
+- A new `LobbyScreen` which replaced the `NewGameScreen` for our purposes here, it also holds a chat window
+
+The user is usually notified by popups about incoming events (e.g. new chat message, lobby invitation, a friendship request, ...).
+
+### Missing things
+
+- Most importantly, *any* kind of persistence: Whenever the code needs some values, the server is queried for them (except if it's just the current operation, then the values are piggy-backed as long as needed). This means you probably see requests whenever some window is opened, because the data is loaded lazy. It doesn't bother or block the UI, though. At the moment, I didn't bother, because a) the server is fast and b) the data is very small, only a few hundred bytes at most usually.
+- Android turn check re-connect fixes, since it's pretty hard to keep the WebSocket alive and the data in sync. I've already spent hours tweaking that.
+- A few buttons and other elements will just popup with ""not implemented yet"". Of course, those things will be addressed in the future.
+- Joining a lobby by invitation & one-to-one in-game chats (all-player chat exists, though).
+
+### Take note
+
+- Changing the server or checking the connection will drop the instance of `OnlineMultiplayer` now, so that everything is cleaned up properly.
+- The `NewGameScreen` will use horizontally aligned picker buttons instead of vertically aligned as before (provides much more screen space).
+- There are no localized strings _anywhere_, because a) this is a draft and b) I wasn't sure how to do it properly.
+- Kotlin builds take seemingly longer now, or is my machine just slow? I thought about splitting all that `apiv2` package stuff out, but that didn't work out easily.
+- I think I didn't change any existing data structures, so that everything should just continue working. The only exception is the data format of the uploads to APIv2 servers, which is ""full"" JSON, but since the PR 9427 is merged, this is no specialty anymore.
+
+cc @SomeTroglodyte @touhidurrr 
+
+If you checkout and build, I suggest the following patch (it provides better debugging experience when testing on multiple devices):
+<details>
+
+```git
+diff --git a/android/AndroidManifest.xml b/android/AndroidManifest.xml
+index e0ef891c2..5cc931a0a 100644
+--- a/android/AndroidManifest.xml
++++ b/android/AndroidManifest.xml
+@@ -21,7 +21,7 @@
+         android:allowBackup=""true""
+         android:icon=""@mipmap/uncivicon""
+         android:roundIcon=""@mipmap/uncivicon_round""
+-        android:label=""@string/app_name""
++        android:label=""Unciv V2""
+         android:isGame=""true""
+         android:largeHeap=""true""
+         android:appCategory=""game""
+diff --git a/android/build.gradle.kts b/android/build.gradle.kts
+index cfd212cfd..f35a9c2c9 100644
+--- a/android/build.gradle.kts
++++ b/android/build.gradle.kts
+@@ -26,7 +26,7 @@ android {
+         resources.excludes += ""DebugProbesKt.bin""
+     }
+     defaultConfig {
+-        applicationId = ""com.unciv.app""
++        applicationId = ""com.unciv.app.apiv2""
+         minSdk = 21
+         targetSdk = 32 // See #5044
+         versionCode = BuildConfig.appCodeNumber
+diff --git a/android/src/com/unciv/app/AndroidLogBackend.kt b/android/src/com/unciv/app/AndroidLogBackend.kt
+index ed32784cc..0efba78c2 100644
+--- a/android/src/com/unciv/app/AndroidLogBackend.kt
++++ b/android/src/com/unciv/app/AndroidLogBackend.kt
+@@ -18,7 +18,7 @@ class AndroidLogBackend : LogBackend {
+     }
+ 
+     override fun isRelease(): Boolean {
+-        return !BuildConfig.DEBUG
++        return false // !BuildConfig.DEBUG
+     }
+ 
+     override fun getSystemInfo(): String {
+diff --git a/core/src/com/unciv/Constants.kt b/core/src/com/unciv/Constants.kt
+index 977c70e80..fe9a2f6c2 100644
+--- a/core/src/com/unciv/Constants.kt
++++ b/core/src/com/unciv/Constants.kt
+@@ -87,6 +87,7 @@ object Constants {
+ 
+     const val dropboxMultiplayerServer = ""Dropbox""
+     const val uncivXyzServer = ""https://uncivserver.xyz""
++    const val runcivServer = ""https://runciv.hopfenspace.org""
+ 
+     const val defaultTileset = ""HexaRealm""
+     const val defaultUnitset = ""AbsoluteUnits""
+diff --git a/core/src/com/unciv/models/metadata/GameSettings.kt b/core/src/com/unciv/models/metadata/GameSettings.kt
+index eafb8e4f8..3be4b6f59 100644
+--- a/core/src/com/unciv/models/metadata/GameSettings.kt
++++ b/core/src/com/unciv/models/metadata/GameSettings.kt
+@@ -225,7 +225,7 @@ class GameSettingsMultiplayer {
+     var passwords = mutableMapOf<String, String>()
+     @Suppress(""unused"")  // @GGuenni knows what he intended with this field
+     var userName: String = """"
+-    var server = Constants.uncivXyzServer
++    var server = Constants.runcivServer
+     var friendList: MutableList<FriendList.Friend> = mutableListOf()
+     var turnCheckerEnabled = true
+     var turnCheckerPersistentNotificationEnabled = true
+diff --git a/core/src/com/unciv/ui/crashhandling/CrashScreen.kt b/core/src/com/unciv/ui/crashhandling/CrashScreen.kt
+index 58cdf49ba..6aeedf1cc 100644
+--- a/core/src/com/unciv/ui/crashhandling/CrashScreen.kt
++++ b/core/src/com/unciv/ui/crashhandling/CrashScreen.kt
+@@ -181,7 +181,7 @@ class CrashScreen(val exception: Throwable): BaseScreen() {
+         )
+             .onClick {
+                 if (copied) {
+-                    Gdx.net.openURI(""https://github.com/yairm210/Unciv/issues"")
++                    Gdx.net.openURI(""https://github.com/hopfenspace/Unciv/issues"")
+                 } else {
+                     ToastPopup(
+                         ""Please copy the error report first."",
+diff --git a/desktop/src/com/unciv/app/desktop/DesktopLogBackend.kt b/desktop/src/com/unciv/app/desktop/DesktopLogBackend.kt
+index 122c167ef..6cbbe09e2 100644
+--- a/desktop/src/com/unciv/app/desktop/DesktopLogBackend.kt
++++ b/desktop/src/com/unciv/app/desktop/DesktopLogBackend.kt
+@@ -11,7 +11,7 @@ class DesktopLogBackend : DefaultLogBackend() {
+             && System.getProperty(""kotlinx.coroutines.debug"") == null
+ 
+     override fun isRelease(): Boolean {
+-        return release
++        return false
+     }
+ 
+     override fun getSystemInfo(): String {
+```
+
+</details>",open,2023-06-01T23:39:00Z,,CrsiX,30,4059,441,63
+Add modified nation descriptions,8261,"New nation descriptions, reworded and shortened.
+
+Requires to be reviewed/corrected/improved by a native english speaker.
+
+This PR serves as a draft, someone can copy the file, improve/correct it, and create another PR if needed, or post suggestions/corrections here directly.
+
+Vanilla nations.json file will be added later, once final descriptions will be ready (to not have to review/modify two files).
+
+EDIT: I made a big historical mistake in one of the description. Let's see if someone notices it ^^",open,2022-12-28T20:22:36Z,,Ouaz,2,68,68,1
+Draft: Add autocomplete users turn functionality,1651,Opening the options menu will allow the user to disable during turn.,open,2020-01-10T07:10:17Z,,LukeKuenneke,17,1,0,1
